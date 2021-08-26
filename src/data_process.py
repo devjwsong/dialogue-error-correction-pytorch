@@ -74,16 +74,16 @@ def make_data(args, ont):
                 if len(slot_spans) > 0:
                     data[data_type][1]["dialogue_ids"].append(dialogue_idx)
                     data[data_type][1]["src_states"].append(turn_label)
-                    data[data_type][1]["src_utters"].append(utter)
+                    data[data_type][1]["trg_utters"].append(utter)
                     
                     slot_spans = random.sample(slot_spans, max(1, int(len(slot_spans) * args.slot_change_rate)))
                     for slot_span in slot_spans:
                         new_value = find_new_value(slot_span[2], utter[slot_span[0]:slot_span[1]], ont)
                         utter = utter[:slot_span[0]] + new_value + utter[slot_span[1]:]
 
-                    data[data_type][1]["trg_utters"].append(utter)
+                    data[data_type][1]["src_utters"].append(utter)
     
-    return data
+    return data, class_dict
 
 
 def count_data(data):
@@ -144,7 +144,7 @@ if __name__=="__main__":
         
     print(new_ont.keys())
         
-    data = make_data(args, new_ont)
+    data, class_dict = make_data(args, new_ont)
     
     train_data = data["train"]
     valid_data = data["valid"]
@@ -164,6 +164,8 @@ if __name__=="__main__":
         pickle.dump(valid_data, f)
     with open(f"{args.data_dir}/test.pickle", 'wb') as f:
         pickle.dump(test_data, f)
+    with open(f"{args.data_dir}/class_dict.json", 'w') as f:
+        json.dump(class_dict, f)
         
     print("Done.")
     

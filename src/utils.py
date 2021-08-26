@@ -5,22 +5,6 @@ import heapq
 import torch
 
 
-def make_tokens(ids_list, tokenizer, eos_token, pad_token):
-    token_list = []
-    for ids in ids_list:
-        tokens = tokenizer.convert_ids_to_tokens(ids)
-        new_tokens = []
-        for token in tokens:
-            if token == eos_token or token == pad_token:
-                break
-
-            new_tokens.append(token)
-
-        token_list.append(new_tokens)
-
-    return token_list
-
-
 def get_accuracy(preds, trues):
     assert len(preds) == len(trues)
     
