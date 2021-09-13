@@ -190,7 +190,7 @@ if __name__=="__main__":
         os.makedirs(args.data_dir)
     
     print("Loading ontology...")
-    with open(f"{args.multiwoz_dir}/multi-woz/MultiWOZ_2.1/ontology.json", 'r') as f:
+    with open(f"{args.multiwoz_dir}/multi-woz/ontology.json", 'r') as f:
         ont = json.load(f)
     
     new_ont = {}
