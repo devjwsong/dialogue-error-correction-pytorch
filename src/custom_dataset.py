@@ -46,8 +46,6 @@ class CustomDataset(Dataset):
                 src_ids = tokenizer.convert_tokens_to_ids(src_tokens)
                 
                 trg_tokens = [bos_token] + tokenizer.tokenize(trg_utter) + [eos_token]
-#                 if "bart" in args.model_name:
-#                     trg_tokens = [eos_token] + trg_tokens
                 trg_ids = tokenizer.convert_tokens_to_ids(trg_tokens)
                 
                 if len(src_ids) > args.max_encoder_len:

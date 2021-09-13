@@ -22,9 +22,11 @@ def run(args):
     if 'bert' in args.model_name:
         module = EncModule(args)
         ppd = EncPadCollate(pad_id=args.pad_id)
+        unused_param_flag=True
     elif 'bart' in args.model_name:
         module = EncDecModule(args)
         ppd = EncDecPadCollate(pad_id=args.pad_id)
+        unused_param_flag=False
     
     print("Loading datasets...")
     # For data loading    
@@ -49,7 +51,7 @@ def run(args):
 
     print("Setting pytorch lightning callback & trainer...")
     # Model checkpoint callback
-    filename = "best_ckpt_{epoch}_{valid_bleu:.4f}_{valid_acc:.4f}"
+    filename = args.model_name + "_{epoch}_{valid_bleu:.4f}_{valid_f1:.4f}"
     monitor = "valid_bleu"
     
     checkpoint_callback = ModelCheckpoint(
@@ -81,7 +83,7 @@ def run(args):
         deterministic=True,
         accelerator="ddp",
         callbacks=[checkpoint_callback, stopping_callback],
-        plugins=DDPPlugin(find_unused_parameters=False),
+        plugins=DDPPlugin(find_unused_parameters=unused_param_flag),
     )
     
     print("Train starts.")
@@ -111,8 +113,8 @@ if __name__=='__main__':
     parser.add_argument('--eval_batch_size', type=int, default=4, help="The batch size for inferencing.")
     parser.add_argument('--num_workers', type=int, default=0, help="The number of workers for data loading.")
     parser.add_argument('--max_encoder_len', type=int, default=512, help="The maximum length of a source sequence.")
-    parser.add_argument('--num_decoder_layers', type=int, default=1, help="The number of layers for the GRU decoder.")
-    parser.add_argument('--decoder_dropout', type=float, default=0.0, help="The dropout rate for the GRU decoder.")
+    parser.add_argument('--num_decoder_layers', type=int, default=2, help="The number of layers for the GRU decoder.")
+    parser.add_argument('--decoder_dropout', type=float, default=0.2, help="The dropout rate for the GRU decoder.")
     parser.add_argument('--max_decoder_len', type=int, default=256, help="The maximum length of a target sequence.")
     parser.add_argument('--learning_rate', type=float, default=5e-5, help="The starting learning rate.")
     parser.add_argument('--warmup_prop', type=float, default=0.0, help="The warmup step proportion.")
@@ -121,7 +123,7 @@ if __name__=='__main__':
     parser.add_argument('--mtl_factor', type=float, default=1.0, help="The loss factor for multi-task learning.")
     parser.add_argument('--loss_reduction', type=str, default='mean', help="How to reduce the LM loss value?")
     parser.add_argument('--beam_size', type=int, default=4, help="The beam size for the beam search when inferencing.")
-    parser.add_argument('--num_samples', type=int, default=100, help="The number of test samples to show.")
+    parser.add_argument('--num_samples', type=int, default=20, help="The number of test samples to show.")
     parser.add_argument('--gpus', nargs="+", default=["0"], help="The indices of GPUs to use.")
     parser.add_argument('--num_nodes', type=int, default=1, help="The number of machine.")
     

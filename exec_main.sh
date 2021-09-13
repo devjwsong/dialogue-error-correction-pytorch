@@ -1,14 +1,14 @@
 python src/main.py \
     --seed=0 \
     --data_dir="data" \
-    --model_name="bart-base" \
-    --num_epochs=20 \
+    --model_name=MODEL_NAME \
+    --num_epochs=5 \
     --train_batch_size=16 \
     --eval_batch_size=4 \
-    --num_workers=4 \
+    --num_workers=0 \
     --max_encoder_len=512 \
-    --num_decoder_layers=1 \
-    --decoder_dropout=0.0 \
+    --num_decoder_layers=2 \
+    --decoder_dropout=0.2 \
     --max_decoder_len=256 \
     --learning_rate=5e-5 \
     --warmup_prop=0.0 \
@@ -17,5 +17,5 @@ python src/main.py \
     --loss_reduction='mean' \
     --beam_size=4 \
     --num_samples=20 \
-    --gpus=1 \
+    --gpus=0 \
     --num_nodes=1

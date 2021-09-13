@@ -9,8 +9,6 @@ import torch
 import pytorch_lightning as pl
 import numpy as np
 import random
-import warnings
-warnings.filterwarnings('error')
 
 
 # 0: path, 1: config, 2: tokenizer, 3: model
@@ -26,7 +24,7 @@ class EncDecModule(pl.LightningModule):
         if isinstance(args, dict):
             args = Namespace(**args)
         
-        print("Loading the encoder & the tokenizer...")
+        print("Loading the model & the tokenizer...")
         self.args = args
         seed_everything(self.args.seed, workers=True)
         
@@ -67,7 +65,7 @@ class EncDecModule(pl.LightningModule):
             input_ids=src_ids, attention_mask=src_masks,
             num_beams=self.args.beam_size, max_length=self.args.max_decoder_len, early_stopping=True,
             output_hidden_states=True, output_scores=True, return_dict_in_generate=True,
-        )  # (B, T_L)
+        )
         
         lm_outputs, encoder_outputs = outputs.sequences, outputs.encoder_hidden_states[-1]  # (B, T_L), (B, S_L, d_h)
         class_logits = self.class_linear(encoder_outputs[:, 0])  # (B, C)
@@ -128,10 +126,10 @@ class EncDecModule(pl.LightningModule):
         train_lm_preds = self.make_tokens(train_lm_preds)
         train_lm_trues = self.make_tokens(train_lm_trues)
         
-        train_acc = get_accuracy(train_class_preds, train_class_trues)
+        train_f1 = get_f1(train_class_preds, train_class_trues)
         train_bleu = get_bleu(train_lm_preds, train_lm_trues)
         
-        self.log('train_acc', train_acc, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        self.log('train_f1', train_f1, on_step=False, on_epoch=True, prog_bar=True, logger=True)
         self.log('train_bleu', train_bleu, on_step=False, on_epoch=True, prog_bar=True, logger=True)
             
     def validation_step(self, batch, batch_idx):
@@ -156,10 +154,10 @@ class EncDecModule(pl.LightningModule):
         valid_lm_preds = self.make_tokens(valid_lm_preds)
         valid_lm_trues = self.make_tokens(valid_lm_trues)
         
-        valid_acc = get_accuracy(valid_class_preds, valid_class_trues)
+        valid_f1 = get_f1(valid_class_preds, valid_class_trues)
         valid_bleu = get_bleu(valid_lm_preds, valid_lm_trues)
         
-        self.log('valid_acc', valid_acc, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        self.log('valid_f1', valid_f1, on_step=False, on_epoch=True, prog_bar=True, logger=True)
         self.log('valid_bleu', valid_bleu, on_step=False, on_epoch=True, prog_bar=True, logger=True)
             
     def test_step(self, batch, batch_idx):
@@ -184,10 +182,10 @@ class EncDecModule(pl.LightningModule):
         test_lm_preds = self.make_tokens(test_lm_preds)
         test_lm_trues = self.make_tokens(test_lm_trues)
         
-        test_acc = get_accuracy(test_class_preds, test_class_trues)
+        test_f1 = get_f1(test_class_preds, test_class_trues)
         test_bleu = get_bleu(test_lm_preds, test_lm_trues)
         
-        self.log('test_acc', test_acc, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        self.log('test_f1', test_f1, on_step=False, on_epoch=True, prog_bar=True, logger=True)
         self.log('test_bleu', test_bleu, on_step=False, on_epoch=True, prog_bar=True, logger=True)
         
         zipped = list(zip(test_class_preds, test_class_trues, test_lm_preds, test_lm_trues))

@@ -6,6 +6,7 @@ import json
 import random
 import pickle
 import os
+import copy
 
 
 def make_data(args, ont):
@@ -68,20 +69,36 @@ def make_data(args, ont):
                         for i in range(len(utter)):
                             if utter[i:i+len(slot_value)] == slot_value:
                                 slot_spans.append((i, i+len(slot_value), slot_type))
-                                break
+                                break                    
                 
-                # class 1
                 if len(slot_spans) > 0:
+                    # Slot value substitution
                     data[data_type][1]["dialogue_ids"].append(dialogue_idx)
                     data[data_type][1]["src_states"].append(turn_label)
                     data[data_type][1]["trg_utters"].append(utter)
                     
-                    slot_spans = random.sample(slot_spans, max(1, int(len(slot_spans) * args.slot_change_rate)))
-                    for slot_span in slot_spans:
-                        new_value = find_new_value(slot_span[2], utter[slot_span[0]:slot_span[1]], ont)
-                        utter = utter[:slot_span[0]] + new_value + utter[slot_span[1]:]
+                    corrupted_utter = value_substitute(utter, slot_spans, args.slot_change_rate, ont)
 
-                    data[data_type][1]["src_utters"].append(utter)
+                    data[data_type][1]["src_utters"].append(corrupted_utter)
+                    
+                    # Truncate slot part
+                    data[data_type][1]["dialogue_ids"].append(dialogue_idx)
+                    data[data_type][1]["src_states"].append(turn_label)
+                    data[data_type][1]["trg_utters"].append(utter)
+                    
+                    corrupted_utter = trunc_slot_part(utter, slot_spans, args.cut_rate, args.max_window_size)
+                    data[data_type][1]["src_utters"].append(corrupted_utter)
+                    
+                # Random truncation
+                else:
+                    data[data_type][1]["dialogue_ids"].append(dialogue_idx)
+                    data[data_type][1]["src_states"].append(turn_label)
+                    data[data_type][1]["trg_utters"].append(utter)
+                    
+                    corrupted_utter = trunc_random_part(utter, args.cut_rate)
+
+                    data[data_type][1]["src_utters"].append(corrupted_utter)
+                    
     
     return data, class_dict
 
@@ -108,12 +125,64 @@ def find_new_value(slot_type, slot_value, ont):
     return new_value
 
 
+def value_substitute(utter, slot_spans, slot_change_rate, ont):
+    sub_slot_spans = random.sample(slot_spans, max(1, int(len(slot_spans) * slot_change_rate)))
+    for slot_span in sub_slot_spans:
+        new_value = find_new_value(slot_span[2], utter[slot_span[0]:slot_span[1]], ont)
+        corrupted_utter = utter[:slot_span[0]] + new_value + utter[slot_span[1]:]
+        
+    return corrupted_utter
+
+
+def trunc_slot_part(utter, slot_spans, cut_rate, max_window_size):
+    num_cut_spans = max(1, int(len(slot_spans) * cut_rate))
+    cut_candids = random.sample(slot_spans, num_cut_spans)
+    
+    copied = utter
+    for span in cut_candids:
+        start, end = span[0], span[1]
+        copied = copied[:start] + "[MASKED]" + copied[end:]
+    
+    copied_words = copied.split(' ')
+    words = copy.deepcopy(copied_words)
+    assert len(copied_words) == len(words)
+    
+    if len(words) <= 4 * max_window_size:
+        window_size = max_window_size // 2
+    else:
+        window_size = max_window_size
+    
+    for w, word in enumerate(words):
+        if word == "[MASKED]":
+            if w-window_size >= 0:
+                copied_words[w-window_size:w] = ["[MASKED]"] * window_size
+            else:
+                copied_words[:w] = ["[MASKED]"] * (w+1)
+                
+            copied_words[w+1:w+window_size+1] = ["[MASKED]"] * window_size
+            
+    removed = [word for word in copied_words if word != "[MASKED]"]
+    
+    return ' '.join(removed).strip()
+
+
+def trunc_random_part(utter, cut_rate):
+    words = utter.split(' ')
+    cut_len = max(1, int(len(words) * cut_rate))
+    start = random.sample(list(range(len(words))), 1)[0]
+    removed = words[:start] + words[start+cut_len:]
+    
+    return ' '.join(removed)
+
+
 if __name__=="__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--seed', type=int, default=0, help="The random seed.")
     parser.add_argument('--multiwoz_dir', type=str, default="trade-dst/data", help="The directory path for multiwoz data files.")
     parser.add_argument('--data_dir', type=str, default="data", help="The directory path to save pickle files.")                            
-    parser.add_argument('--slot_change_rate', type=float, default=0.5, help="The ratio of changed slot part.")
+    parser.add_argument('--slot_change_rate', type=float, default=0.8, help="The ratio of changed slot part.")
+    parser.add_argument('--cut_rate', type=float, default=0.3, help="The ratio of truncation.")
+    parser.add_argument('--max_window_size', type=int, default=2, help="The maximum size of window when truncating.")
     
     args = parser.parse_args()
     

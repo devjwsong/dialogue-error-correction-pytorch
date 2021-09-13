@@ -228,7 +228,7 @@ class EncModule(pl.LightningModule):
         class_preds = torch.max(class_logits, dim=-1).indices  # (B)
         
         return {
-            'loss': loss, 'lm_loss': lm_loss, 'class_loss': class_loss,
+            'loss': loss, 'lm_loss': lm_loss.detach(), 'class_loss': class_loss.detach(),
             'lm_preds': lm_preds, 'lm_trues': trg_ids[:, 1:],
             'class_preds': class_preds, 'class_trues': class_labels,
         }
@@ -254,10 +254,10 @@ class EncModule(pl.LightningModule):
         train_lm_preds = self.make_tokens(train_lm_preds)
         train_lm_trues = self.make_tokens(train_lm_trues)
         
-        train_acc = get_accuracy(train_class_preds, train_class_trues)
+        train_f1 = get_f1(train_class_preds, train_class_trues)
         train_bleu = get_bleu(train_lm_preds, train_lm_trues)
         
-        self.log('train_acc', train_acc, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        self.log('train_f1', train_f1, on_step=False, on_epoch=True, prog_bar=True, logger=True)
         self.log('train_bleu', train_bleu, on_step=False, on_epoch=True, prog_bar=True, logger=True)
             
     def validation_step(self, batch, batch_idx):
@@ -282,10 +282,10 @@ class EncModule(pl.LightningModule):
         valid_lm_preds = self.make_tokens(valid_lm_preds)
         valid_lm_trues = self.make_tokens(valid_lm_trues)
         
-        valid_acc = get_accuracy(valid_class_preds, valid_class_trues)
+        valid_f1 = get_f1(valid_class_preds, valid_class_trues)
         valid_bleu = get_bleu(valid_lm_preds, valid_lm_trues)
         
-        self.log('valid_acc', valid_acc, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        self.log('valid_f1', valid_f1, on_step=False, on_epoch=True, prog_bar=True, logger=True)
         self.log('valid_bleu', valid_bleu, on_step=False, on_epoch=True, prog_bar=True, logger=True)
             
     def test_step(self, batch, batch_idx):
@@ -310,10 +310,10 @@ class EncModule(pl.LightningModule):
         test_lm_preds = self.make_tokens(test_lm_preds)
         test_lm_trues = self.make_tokens(test_lm_trues)
         
-        test_acc = get_accuracy(test_class_preds, test_class_trues)
+        test_f1 = get_f1(test_class_preds, test_class_trues)
         test_bleu = get_bleu(test_lm_preds, test_lm_trues)
         
-        self.log('test_acc', test_acc, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        self.log('test_f1', test_f1, on_step=False, on_epoch=True, prog_bar=True, logger=True)
         self.log('test_bleu', test_bleu, on_step=False, on_epoch=True, prog_bar=True, logger=True)
         
         zipped = list(zip(test_class_preds, test_class_trues, test_lm_preds, test_lm_trues))

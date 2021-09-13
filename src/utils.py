@@ -1,14 +1,14 @@
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import f1_score
 from torchtext.data.metrics import bleu_score
 
 import heapq
 import torch
 
 
-def get_accuracy(preds, trues):
+def get_f1(preds, trues):
     assert len(preds) == len(trues)
     
-    return accuracy_score(trues, preds)
+    return f1_score(trues, preds)
 
 
 def get_bleu(preds, trues):
