@@ -182,7 +182,7 @@ if __name__=="__main__":
     parser.add_argument('--data_dir', type=str, default="data", help="The directory path to save pickle files.")                            
     parser.add_argument('--slot_change_rate', type=float, default=0.8, help="The ratio of changed slot part.")
     parser.add_argument('--cut_rate', type=float, default=0.3, help="The ratio of truncation.")
-    parser.add_argument('--max_window_size', type=int, default=2, help="The maximum size of window when truncating.")
+    parser.add_argument('--max_window_size', type=int, default=2, help="The maximum size of window when truncated.")
     
     args = parser.parse_args()
     

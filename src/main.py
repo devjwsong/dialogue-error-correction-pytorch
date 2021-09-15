@@ -107,7 +107,7 @@ if __name__=='__main__':
     
     parser.add_argument('--seed', type=int, default=0, help="The random seed.")
     parser.add_argument('--data_dir', type=str, default="data", help="The directory path to save pickle files.")
-    parser.add_argument('--model_name', required=True, type=str, help="The model to test.")
+    parser.add_argument('--model_name', required=True, type=str, help="The model to train & test.")
     parser.add_argument('--num_epochs', type=int, default=5, help="The number of total epochs.")
     parser.add_argument('--train_batch_size', type=int, default=16, help="The batch size for training.")
     parser.add_argument('--eval_batch_size', type=int, default=4, help="The batch size for inferencing.")
@@ -119,7 +119,7 @@ if __name__=='__main__':
     parser.add_argument('--learning_rate', type=float, default=5e-5, help="The starting learning rate.")
     parser.add_argument('--warmup_prop', type=float, default=0.1, help="The warmup step proportion.")
     parser.add_argument('--max_grad_norm', type=float, default=1.0, help="The max gradient for gradient clipping.")
-    parser.add_argument('--use_copy', action='store_true', help="Using copy or not?")
+    parser.add_argument('--use_copy', action='store_true', help="Using copy or not, when using GRU decoder?")
     parser.add_argument('--mtl_factor', type=float, default=1.0, help="The loss factor for multi-task learning.")
     parser.add_argument('--loss_reduction', type=str, default='mean', help="How to reduce the LM loss value?")
     parser.add_argument('--beam_size', type=int, default=4, help="The beam size for the beam search when inferencing.")
