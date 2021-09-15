@@ -11,7 +11,7 @@ python src/main.py \
     --decoder_dropout=0.2 \
     --max_decoder_len=256 \
     --learning_rate=5e-5 \
-    --warmup_prop=0.0 \
+    --warmup_prop=0.1 \
     --max_grad_norm=1.0 \
     --mtl_factor=1.0 \
     --loss_reduction='mean' \

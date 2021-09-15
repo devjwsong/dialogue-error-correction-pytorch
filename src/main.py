@@ -35,7 +35,6 @@ def run(args):
     test_set = CustomDataset(args, "test", module.tokenizer)
 
     # Dataloaders
-    seed_everything(args.seed, workers=True)
     train_loader = DataLoader(train_set, collate_fn=ppd.pad_collate, batch_size=args.train_batch_size, shuffle=True, num_workers=args.num_workers)
     valid_loader = DataLoader(valid_set, collate_fn=ppd.pad_collate, batch_size=args.eval_batch_size, num_workers=args.num_workers)
     test_loader = DataLoader(test_set, collate_fn=ppd.pad_collate, batch_size=args.eval_batch_size, num_workers=args.num_workers)
@@ -72,6 +71,7 @@ def run(args):
     )
     
     # Trainer setting
+    seed_everything(args.seed, workers=True)
     trainer = Trainer(
         check_val_every_n_epoch=1,
         gpus=args.gpus,
@@ -117,7 +117,7 @@ if __name__=='__main__':
     parser.add_argument('--decoder_dropout', type=float, default=0.2, help="The dropout rate for the GRU decoder.")
     parser.add_argument('--max_decoder_len', type=int, default=256, help="The maximum length of a target sequence.")
     parser.add_argument('--learning_rate', type=float, default=5e-5, help="The starting learning rate.")
-    parser.add_argument('--warmup_prop', type=float, default=0.0, help="The warmup step proportion.")
+    parser.add_argument('--warmup_prop', type=float, default=0.1, help="The warmup step proportion.")
     parser.add_argument('--max_grad_norm', type=float, default=1.0, help="The max gradient for gradient clipping.")
     parser.add_argument('--use_copy', action='store_true', help="Using copy or not?")
     parser.add_argument('--mtl_factor', type=float, default=1.0, help="The loss factor for multi-task learning.")
