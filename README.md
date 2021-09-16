@@ -36,7 +36,7 @@ Make a directory name `convbert` in the root and put all the downloaded files in
 
 Additionally, the model is also trained for binary classification which detect whether the input should be corrected or not.
 
-The class $0$ means that the utterance does not have to be fixed and class $1$ is vice versa.
+The class 0 means that the utterance does not have to be fixed and class 1 is vice versa.
 
 <br/>
 
